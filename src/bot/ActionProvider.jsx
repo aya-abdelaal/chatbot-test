@@ -1,5 +1,7 @@
 import React from "react";
 import { createClientMessage } from "react-chatbot-kit";
+import config from "./config.js";
+import ChatbotChoices from "../components/ChatbotChoices";
 
 const ActionProvider = ({
   createChatBotMessage,
@@ -9,8 +11,8 @@ const ActionProvider = ({
   createCustomMessage,
   rest,
 }) => {
-  const handleChoice = (index) => {
-    const currRow = state.currRow;
+  const handleChoice = (index, row) => {
+    const currRow = row;
 
     const nextRow = state.flowData[currRow + 1][index + 1];
 
@@ -52,11 +54,21 @@ const ActionProvider = ({
           }
         }
 
-        console.log(choices);
+        //createNewWidget
 
-        setState((state) => ({ ...state, choices: choices }));
+        config.widgets.push({
+          widgetName: `Choices${nextRow}`,
+          widgetFunc: (props) => <ChatbotChoices {...props} />,
+          props: {
+            choices: choices,
+            row: nextRow,
+          },
+        });
+
+        // setState((state) => ({ ...state, choices: choices }));
+
         let choicesMessage = createChatBotMessage(state.flowData[nextRow][0], {
-          widget: "ChatbotChoices",
+          widget: `Choices${nextRow}`,
         });
         updateState(choicesMessage);
         break;

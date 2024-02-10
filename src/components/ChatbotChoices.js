@@ -4,8 +4,8 @@ import { createClientMessage } from "react-chatbot-kit";
 import { act } from "react-dom/test-utils";
 
 const ChatbotChoices = (props) => {
-  const onChoiceClick = (index) => {
-    props.actions.handleChoice(index);
+  const onChoiceClick = (index, row) => {
+    props.actions.handleChoice(index, row);
   };
   return (
     <div>
@@ -13,7 +13,7 @@ const ChatbotChoices = (props) => {
         <div
           key={index}
           className="chatbot-choice"
-          onClick={() => onChoiceClick(index)}
+          onClick={() => onChoiceClick(index, props.row)}
         >
           {choice}
         </div>

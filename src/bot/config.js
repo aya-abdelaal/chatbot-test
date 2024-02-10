@@ -20,7 +20,7 @@ for (const [key, value] of Object.entries(flowData[0])) {
 const config = {
   initialMessages: [
     createChatBotMessage(flowData[0][0], {
-      widget: "ChatbotChoices",
+      widget: "Choices0",
     }),
   ],
   botName: "Employment Bot",
@@ -55,7 +55,6 @@ const config = {
 
   state: {
     currRow: 0,
-    choices: initialChoices,
     flowData: flowData,
     chatEnded: false,
   },
@@ -63,10 +62,14 @@ const config = {
   widgets: [
     {
       // defines the name you will use to reference to this widget in "createChatBotMessage".
-      widgetName: "ChatbotChoices",
+      widgetName: "Choices0",
       // Function that will be called internally to resolve the widget
       widgetFunc: (props) => <ChatbotChoices {...props} />,
-      mapStateToProps: ["choices", "flowData", "currRow"],
+      props: {
+        // Any props you want to pass to your widget
+        choices: initialChoices,
+        row: 0,
+      },
       // Any props you want the widget to receive on render
     },
   ],
