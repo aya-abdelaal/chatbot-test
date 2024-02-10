@@ -24,19 +24,6 @@ const ActionProvider = ({
     handleFlow(nextRow);
   };
 
-  const configureChoices = (obj) => {
-    console.log(obj);
-    let choices = [];
-    for (const [key, value] of Object.entries(obj)) {
-      console.log(value);
-      if (key != "Type" && key != 0 && value != null) {
-        choices.push(value);
-      }
-      console.log(choices);
-      return choices;
-    }
-  };
-
   const handleFlow = (nextRow) => {
     nextRow -= 1;
 
@@ -47,6 +34,8 @@ const ActionProvider = ({
     switch (state.flowData[nextRow]["Type"]) {
       case "Choices":
         let choices = [];
+
+        //get choices
 
         for (const [key, value] of Object.entries(state.flowData[nextRow])) {
           if (key != "Type" && key != 0 && value != null) {
@@ -65,9 +54,9 @@ const ActionProvider = ({
           },
         });
 
-        // setState((state) => ({ ...state, choices: choices }));
-
-        let choicesMessage = createChatBotMessage(state.flowData[nextRow][0], {
+        let text = state.flowData[nextRow][0];
+        if (text == "") text = "الرجاء اختيار";
+        let choicesMessage = createChatBotMessage(text, {
           widget: `Choices${nextRow}`,
         });
         updateState(choicesMessage);
@@ -83,6 +72,11 @@ const ActionProvider = ({
           setState((state) => ({ ...state, chatEnded: true }));
         }
         break;
+    }
+
+    if (state.chatEnded) {
+      let message = createChatBotMessage("شكرا لك");
+      updateState(message);
     }
   };
 

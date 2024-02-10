@@ -3,8 +3,6 @@ import React from "react";
 const MessageParser = ({ children, actions, state }) => {
   const parse = (message) => {
     console.log("MessageParser" + message);
-
-    actions.handleChoice(0);
   };
 
   return (
