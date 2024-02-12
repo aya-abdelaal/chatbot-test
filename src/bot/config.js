@@ -31,6 +31,9 @@ const config = {
     header: () => (
       <div
         style={{
+          color: "white",
+          fontSize: "20px",
+          padding: "5px",
           backgroundColor: "#c60000",
           padding: "5px",
           borderRadius: "3px",
@@ -68,7 +71,7 @@ const config = {
       widgetFunc: (props) => <ChatbotChoices {...props} />,
       props: {
         // Any props you want to pass to your widget
-        choices: initialChoices,
+        choices: flowData[0]["Type"] === "Choices" ? initialChoices : [],
         row: 0,
       },
       // Any props you want the widget to receive on render

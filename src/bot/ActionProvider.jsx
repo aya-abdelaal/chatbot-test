@@ -2,6 +2,7 @@ import React from "react";
 import { createClientMessage } from "react-chatbot-kit";
 import config from "./config.js";
 import ChatbotChoices from "../components/ChatbotChoices";
+import axios from "axios";
 
 const ActionProvider = ({
   createChatBotMessage,
@@ -21,9 +22,47 @@ const ActionProvider = ({
     //createUserMessage
     const message = createClientMessage(state.flowData[currRow][index + 1]);
 
+    state["lastChoice"] = state.flowData[currRow][index + 1];
+
     updateState(message);
 
     handleFlow(nextRow);
+  };
+
+  const isValidEgyptianPhoneNumber = (phoneNumber) => {
+    // Remove any non-digit characters
+    const cleanNumber = phoneNumber.replace(/\D/g, "");
+
+    // Check if the cleaned number starts with '01' and has a total length of 11 digits
+    const isValid = /^01\d{9}$/.test(cleanNumber);
+
+    return isValid;
+  };
+  //handles user input
+  const handleInput = (message) => {
+    const currRow = state.currRow;
+
+    if (state.flowData[currRow]["Type"] == "User input") {
+      //get variable name to save from row[0]
+      //phoneNumber has variable name phoneNumber
+      const variableName = state.flowData[currRow][1].trim();
+
+      let nextRow = state.flowData[currRow][2];
+
+      if (variableName === "phoneNumber") {
+        if (isValidEgyptianPhoneNumber(message)) {
+          setState((state) => ({ ...state, phoneNumber: message }));
+        } else {
+          //if not go to false validation row message
+          nextRow = state.flowData[currRow][3];
+        }
+      } else {
+        state[variableName] = message;
+        setState(state);
+      }
+
+      handleFlow(nextRow);
+    }
   };
 
   //creates next bot message according to data
@@ -41,6 +80,8 @@ const ActionProvider = ({
       //update state so we are currently at the correct row
       setState((state) => ({ ...state, currRow: nextRow }));
 
+      if (state.flowData[nextRow]["ID"] === "EMAIL") sendEmail();
+
       switch (state.flowData[nextRow]["Type"]) {
         case "Choices":
           cretaeNewMessageChoices(nextRow);
@@ -50,22 +91,25 @@ const ActionProvider = ({
           let message = createChatBotMessage(state.flowData[nextRow][0]);
           updateState(message);
           break;
+        case "Search":
+          handleSearch();
+          break;
         default:
           //if type is statement, display message and check if the chat ended
           let statement = createChatBotMessage(state.flowData[nextRow][0]);
           updateState(statement);
-          if (state.flowData[nextRow][1] === "END") {
+          if (state.flowData[nextRow][1].trim() === "END") {
             setState((state) => ({ ...state, chatEnded: true }));
+          } else {
+            handleFlow(state.flowData[nextRow][1]);
           }
           break;
       }
     }
+  };
 
-    if (state.chatEnded) {
-      //TODO:handle end user query
-      let message = createChatBotMessage("شكرا لك");
-      updateState(message);
-    }
+  const handleSearch = () => {
+    //TODO: add search logic from backend
   };
 
   //Creates new bot message if the message type is choice bubbles
@@ -75,7 +119,7 @@ const ActionProvider = ({
     //get choices
 
     for (const [key, value] of Object.entries(state.flowData[nextRow])) {
-      if (key != "Type" && key != 0 && value != null) {
+      if (key != "Type" && key != "ID" && key != 0 && value != null) {
         choices.push(value);
       }
     }
@@ -112,11 +156,35 @@ const ActionProvider = ({
     );
   };
 
+  //email function
+  const sendEmail = async () => {
+    const emailData = {
+      to: "abdelaal.aya@hotmail.com", //TODO: replace with user's email
+      subject: "Chatbot Customer Inquiry",
+      text: `Customer with phone number ${
+        state.phoneNumber
+      } submitted a customer service request with message :\n 
+      ${state.message ? state.message : state.lastChoice}`,
+    };
+
+    try {
+      // Make a POST request to your backend
+      const response = await axios.post(
+        "http://localhost:8000/send-email",
+        emailData
+      );
+
+      console.log("Email sent successfully:", response.data);
+    } catch (error) {
+      console.error("Error sending email:", error.response.data);
+    }
+  };
+
   return (
     <div>
       {React.Children.map(children, (child) => {
         return React.cloneElement(child, {
-          actions: { handleChoice, handleFlow },
+          actions: { handleChoice, handleFlow, handleInput },
         });
       })}
     </div>
