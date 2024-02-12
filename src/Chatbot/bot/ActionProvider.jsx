@@ -1,7 +1,7 @@
 import React from "react";
 import { createClientMessage } from "react-chatbot-kit";
 import config from "./config.js";
-import ChatbotChoices from "../components/ChatbotChoices";
+import ChatbotChoices from "../components/ChatbotChoices.js";
 import axios from "axios";
 
 const ActionProvider = ({

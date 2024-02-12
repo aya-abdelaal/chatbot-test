@@ -1,7 +1,7 @@
 // Config starter code
 import { createChatBotMessage } from "react-chatbot-kit";
-import ChatbotChoices from ".././components/ChatbotChoices";
-import BotAvatar from ".././components/botAvatar";
+import ChatbotChoices from "../components/ChatbotChoices";
+import BotAvatar from "../components/botAvatar";
 
 const marlboroRed = "#c60000";
 const sheetEndpoint =
