@@ -8,6 +8,7 @@ const sheetEndpoint =
   "https://sheet.best/api/sheets/e9276d87-52bb-4e85-8840-aa38f8a64b20"; //TODO: move to env after demo
 
 let flowData = await fetch(sheetEndpoint).then((response) => response.json());
+
 console.log(flowData);
 
 let initialChoices = [];

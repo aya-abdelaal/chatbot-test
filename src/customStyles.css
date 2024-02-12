@@ -1,0 +1,4 @@
+div.react-chatbot-kit-user-chat-message,
+div.react-chatbot-kit-chat-bot-message {
+  text-align: right !important;
+}
