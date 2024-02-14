@@ -79,8 +79,10 @@ const ActionProvider = ({
     } else {
       //update state so we are currently at the correct row
       setState((state) => ({ ...state, currRow: nextRow }));
+      state.currRow = nextRow;
 
-      if (state.flowData[nextRow]["ID"] === "EMAIL") sendEmail();
+      //Todo: add logic for export
+      if (state.flowData[nextRow]["Action"] === "EMAIL") sendEmail();
 
       switch (state.flowData[nextRow]["Type"]) {
         case "Choices":
@@ -98,7 +100,10 @@ const ActionProvider = ({
           //if type is statement, display message and check if the chat ended
           let statement = createChatBotMessage(state.flowData[nextRow][0]);
           updateState(statement);
-          if (state.flowData[nextRow][1].trim() === "END") {
+          if (
+            typeof state.flowData[nextRow][1] === "string" &&
+            state.flowData[nextRow][1].trim() === "END"
+          ) {
             setState((state) => ({ ...state, chatEnded: true }));
           } else {
             handleFlow(state.flowData[nextRow][1]);
@@ -110,10 +115,115 @@ const ActionProvider = ({
 
   const handleSearch = () => {
     //TODO: add search logic from backend
+    const sheetName = state.flowData[state.currRow][0];
+
+    const columnNames = state.flowData[state.currRow][1];
+
+    const nextRow = state.flowData[state.currRow][2];
+
+    const searchKey = state.flowData[state.currRow][3];
+
+    const searchVariable = state.flowData[state.currRow][4];
+
+    let responseData = "";
+
+    if (searchKey !== null && searchVariable !== null) {
+      const searchValue = state[searchVariable];
+
+      axios
+        .get("http://localhost:8000/search-google-sheet", {
+          params: {
+            sheetName,
+            searchKey,
+            searchValue,
+            columns: columnNames,
+          },
+        })
+        .then((response) => {
+          const searchResults = response.data;
+          if (searchResults.length === 0) {
+            const message = createChatBotMessage("لم يتم العثور على نتائج");
+            updateState(message);
+          } else {
+            responseData = searchResults.map((result) => {
+              return Object.values(result).join(" ");
+            });
+
+            //once you have your data go to next row and replace data placeholder
+
+            handleSearchNextRow(nextRow, responseData);
+          }
+        });
+    } else {
+      axios
+        .get("http://localhost:8000/column-from-sheet", {
+          params: {
+            sheetName,
+            columnNames,
+          },
+        })
+        .then((response) => {
+          console.log(response.data);
+          responseData = response.data.map((result) => {
+            return Object.values(result).join(" ");
+          });
+
+          //once you have your data go to next row and replace data placeholder
+
+          console.log(responseData);
+
+          handleSearchNextRow(nextRow, responseData);
+        });
+    }
+  };
+
+  const handleSearchNextRow = (nextRow, responseData) => {
+    nextRow -= 2;
+
+    if (!isRowValid(state.flowData, nextRow)) {
+      let message = createChatBotMessage("حدث خطأ في النظام");
+      updateState(message);
+      setState((state) => ({ ...state, chatEnded: true }));
+    } else {
+      //update state so we are currently at the correct row
+      setState((state) => ({ ...state, currRow: nextRow }));
+
+      const textData = responseData.join("\n , ");
+
+      console.log("textData", textData);
+
+      switch (state.flowData[nextRow]["Type"]) {
+        case "Choices":
+          cretaeNewMessageChoices(nextRow, textData);
+          break;
+        case "User input":
+          //if user input just show the message
+          let message = createChatBotMessage(
+            state.flowData[nextRow][0].replace("data", textData)
+          );
+          updateState(message);
+          break;
+        default:
+          //if type is statement, display message and check if the chat ended
+          let statement = createChatBotMessage(
+            state.flowData[nextRow][0].replace("data", textData)
+          );
+          updateState(statement);
+          if (
+            typeof state.flowData[nextRow][1] === "string" &&
+            state.flowData[nextRow][1].trim() === "END"
+          ) {
+            setState((state) => ({ ...state, chatEnded: true }));
+          } else {
+            handleFlow(state.flowData[nextRow][1]);
+          }
+          break;
+      }
+    }
   };
 
   //Creates new bot message if the message type is choice bubbles
-  const cretaeNewMessageChoices = (nextRow) => {
+  const cretaeNewMessageChoices = (nextRow, searchData) => {
     let choices = [];
 
     //get choices
@@ -136,7 +246,8 @@ const ActionProvider = ({
     });
 
     let text = state.flowData[nextRow][0];
-    if (text === "") text = "الرجاء اختيار";
+    if (searchData) text = text.replace("data", searchData);
+    if (text === null) text = "الرجاء اختيار";
     let choicesMessage = createChatBotMessage(text, {
       widget: `Choices${nextRow}`,
     });

@@ -2,12 +2,24 @@
 import { createChatBotMessage } from "react-chatbot-kit";
 import ChatbotChoices from "../components/ChatbotChoices";
 import BotAvatar from "../components/botAvatar";
+import axios from "axios";
 
 const marlboroRed = "#c60000";
-const sheetEndpoint =
-  "https://sheet.best/api/sheets/e9276d87-52bb-4e85-8840-aa38f8a64b20"; //TODO: move to env after demo
+// const sheetEndpoint =
+//   "https://sheet.best/api/sheets/e9276d87-52bb-4e85-8840-aa38f8a64b20"; //TODO: move to env after demo
 
-let flowData = await fetch(sheetEndpoint).then((response) => response.json());
+// let flowData = await fetch(sheetEndpoint).then((response) => response.json());
+let flowData = [];
+//TODO: move to env after demo
+
+/*
+  FLOW DATA IS ARRAY OF OBJECTS
+
+  EMPTY CELLS ARE SET AS NULL
+*/
+await axios.get("http://localhost:8000/flow-data").then((response) => {
+  flowData = response.data["Flow"];
+});
 
 console.log(flowData);
 
