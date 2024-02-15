@@ -17,9 +17,16 @@ let flowData = [];
 
   EMPTY CELLS ARE SET AS NULL
 */
-await axios.get("http://localhost:8000/flow-data").then((response) => {
-  flowData = response.data["Flow"];
-});
+
+await axios
+  .get("http://localhost:8000/flow-data")
+  .then((response) => {
+    flowData = response.data["Flow"];
+  })
+  .catch((error) => {
+    console.log(error);
+    flowData = [{ 0: "خطأ في النظام" }];
+  });
 
 console.log(flowData);
 
